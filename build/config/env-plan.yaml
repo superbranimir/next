@@ -1,0 +1,30 @@
+logsBucket: 'next-cicd-builds-logs'
+
+steps:
+  - id: Run terraform init
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    args:
+      - init
+    dir: terraform
+
+  - id: Run terraform plan
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    dir: terraform
+    args:
+      - plan
+      - '-out=tfplan'
+
+  - id: Push plan to the builds storage bucket
+    name: 'gcr.io/cloud-builders/gcloud'
+    dir: 'terraform'
+    entrypoint: 'bash'
+    args: [ '-c', 'gsutil cp tfplan "gs://${PROJECT_ID}-builds/shared-infra/${COMMIT_SHA}.tfplan"' ]
+
+  - id: 'Run cd trigger'
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args: [ '-c', 'gcloud beta builds triggers run shared-infra-cd --sha ${COMMIT_SHA}' ]

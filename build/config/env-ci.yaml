@@ -1,0 +1,42 @@
+logsBucket: 'next-cicd-builds-logs'
+
+steps:
+  - id: Run checkov
+    name: bridgecrew/checkov
+    args:
+      - '-c'
+      - checkov --directory . --quiet --compact
+    dir: terraform
+    entrypoint: sh
+
+  - id: Run terraform init
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    args:
+      - init
+      - '-backend=false'
+    dir: terraform
+
+  - id: Run terraform validate
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    args:
+      - validate
+    dir: terraform
+
+  - id: Run terraform formatting check
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    args:
+      - fmt
+      - '-check'
+      - '-recursive'
+    dir: terraform
+
+  - id: 'Run plan trigger'
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args: [ '-c', 'gcloud beta builds triggers run shared-infra-plan --sha ${COMMIT_SHA}' ]

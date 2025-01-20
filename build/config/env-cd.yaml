@@ -1,0 +1,26 @@
+timeout: '1800s'
+logsBucket: 'next-cicd-builds-logs'
+
+steps:
+  - id: Run terraform init
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    args:
+      - init
+    dir: terraform
+
+  - id: Pull tf.plan from the builds storage bucket
+    name: 'gcr.io/cloud-builders/gcloud'
+    dir: terraform
+    entrypoint: 'bash'
+    args: [ '-c', 'gsutil cp "gs://${PROJECT_ID}-builds/shared-infra/${COMMIT_SHA}.tfplan" tf.plan' ]
+
+  - id: Run terraform apply
+    name: hashicorp/terraform
+    env:
+      - TF_IN_AUTOMATION=1
+    dir: terraform
+    args: 
+      - apply 
+      - 'tf.plan'
