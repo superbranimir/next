@@ -1,5 +1,5 @@
 locals {
-  buildProject = "next-builder"
+  buildProject = "next-cicd"
   buildServiceAccountCICDRoles = [
     "roles/artifactregistry.admin",
     "roles/cloudbuild.builds.builder",

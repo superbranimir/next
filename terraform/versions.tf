@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/random"
       version = ">= 2.1"
     }
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = ">=3.0.2"
+    }
   }
 
   backend "gcs" {
